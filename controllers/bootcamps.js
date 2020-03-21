@@ -11,9 +11,10 @@ exports.getBootcamps = (req, res, next) => {
 //@desc   GET single bootcamp
 //@access Public
 exports.getBootcamp = (req, res, next) => {
-  res
-    .status(200)
-    .json({ success: true, msg: `Show bootcamp #${req.params.id}` });
+  res.status(200).json({
+    success: true,
+    msg: `Show bootcamp #${req.params.id}`
+  });
 };
 
 //@route  POST /api/v1/bootcamps

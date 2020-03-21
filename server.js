@@ -2,6 +2,8 @@
 const express = require("express");
 //requiring dotenv
 const dotenv = require("dotenv");
+//requiring middleware from our dependencies
+const morgan = require("morgan");
 
 //Routing files
 const bootcamps = require("./routes/bootcamps");
@@ -11,6 +13,11 @@ dotenv.config({ path: "./config/config.env" });
 
 //initializing our app to use express
 const app = express();
+
+//DEV logging middleware
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+}
 
 //Mount routers to our app
 app.use("/api/v1/bootcamps", bootcamps);
