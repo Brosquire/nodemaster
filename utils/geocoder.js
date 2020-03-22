@@ -1,5 +1,9 @@
 //requiring our node geocoder
 const NodeGeoCoder = require("node-geocoder");
+//requiring dotenv
+const dotenv = require("dotenv");
+//Loading environmental variables
+dotenv.config({ path: "./config/config.env" });
 
 const options = {
   provider: process.env.GEOCODER_PROVIDER,
