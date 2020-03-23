@@ -1,6 +1,10 @@
 //requiring express
 const express = require("express");
 const router = express.Router();
+//requiring Bootcamp model
+const Bootcamp = require("../models/Bootcamp");
+//Bringing in Advanced Results Middleware
+const advancedResults = require("../middleware/advancedResults");
 //importing our routes from our route controllers
 const {
   getBootcamp,
@@ -33,7 +37,7 @@ router.route("/:id/photo").put(bootcampPhotoUpload);
 
 router
   .route("/")
-  .get(getBootcamps)
+  .get(advancedResults(Bootcamp, "courses"), getBootcamps)
   .post(createBootcamp);
 
 router

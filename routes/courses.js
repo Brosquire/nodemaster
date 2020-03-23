@@ -1,6 +1,10 @@
 //requiring express
 const express = require("express");
 const router = express.Router({ mergeParams: true }); //passing mergeParams: true as an object to redirect routes below
+//bringing in the Course model
+const Courses = require("../models/Course");
+//bringing in the advanced results middleware
+const advancedResults = require("../middleware/advancedResults");
 
 const {
   getCourses,
@@ -12,7 +16,10 @@ const {
 
 router
   .route("/")
-  .get(getCourses)
+  .get(
+    advancedResults(Courses, { path: "bootcamp", select: "name description" }),
+    getCourses
+  )
   .post(addCourse);
 
 router

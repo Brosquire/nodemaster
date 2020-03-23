@@ -12,21 +12,17 @@ const ErrorResponse = require("../utils/errorResponse");
 //@desc     GET all bootcamps and their course
 //@access   Public
 exports.getCourses = asyncHandler(async (req, res, next) => {
-  let query;
-
   if (req.params.bootcampId) {
-    query = Course.find({ bootcamp: req.params.bootcampId });
-  } else {
-    query = Course.find().populate({
-      //chain the populate method
-      path: `bootcamp`, //pass the arguments in an object model with the path to the bootcamp
-      select: `name description` //select the parametrs from the bootcamp model in a string format seperated by a space
+    const courses = await Course.find({ bootcamp: req.params.bootcampId });
+
+    return res.status(200).json({
+      success: true,
+      count: courses.length,
+      data: courses
     });
+  } else {
+    res.status(200).json(res.advancedResults);
   }
-
-  const courses = await query;
-
-  res.status(200).json({ success: true, count: courses.length, data: courses });
 });
 
 //@route    GET /api/v1/courses/:id
