@@ -8,7 +8,8 @@ const {
   updateBootcamp,
   deleteBootcamp,
   createBootcamp,
-  radiusBootcamp
+  radiusBootcamp,
+  bootcampPhotoUpload
 } = require("../controllers/bootcamps");
 
 //Include other resource routers
@@ -27,6 +28,8 @@ router.use(`/:bootcampId/courses`, courseRouter);
   and passing the route as an argument for its respective API call
 */
 router.route("/radius/:zipcode/:distance").get(radiusBootcamp);
+
+router.route("/:id/photo").put(bootcampPhotoUpload);
 
 router
   .route("/")

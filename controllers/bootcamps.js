@@ -6,6 +6,8 @@ const Bootcamp = require("../models/Bootcamp");
 const asyncHandler = require("../middleware/async");
 //Requiring Geocode
 const geoCoder = require("../utils/geocoder");
+//requiring path module
+const path = require("path");
 const ErrorResponse = require("../utils/errorResponse");
 
 //@route  GET /api/v1/bootcamps
@@ -173,5 +175,45 @@ exports.radiusBootcamp = asyncHandler(async (req, res, next) => {
     success: true,
     count: bootcampLocation.length,
     data: bootcampLocation
+  });
+});
+
+//@route  DELETE /api/v1/bootcamps/:id/photo
+//@desc   Upload photo for bootcamp
+//@access Private
+exports.bootcampPhotoUpload = asyncHandler(async (req, res, next) => {
+  const bootcampPhoto = await Bootcamp.findById(req.params.id);
+  if (!bootcampPhoto) {
+    return next(error);
+  }
+
+  if (!req.files) {
+    return next(error);
+  }
+
+  const file = req.files.file;
+
+  // Check if file is photo using startswith method = all images are prefixed with image/(png or jpg or svg)
+  if (!file.mimetype.startsWith("image")) {
+    return next(error);
+  }
+
+  //Check file size
+  if (file.size > process.env.MAX_FILE_UPLOAD) {
+    return next(error);
+  }
+
+  //Create custom file name to avoid duplicates/overwrites
+  file.name = `photo_${bootcampPhoto._id}${path.parse(file.name).ext}`;
+
+  // Upload the file to the DB
+  file.mv(`${process.env.FILE_UPLOAD_PATH}/${file.name}`, async error => {
+    if (error) {
+      console.error(error);
+      return next(error);
+    }
+
+    await Bootcamp.findByIdAndUpdate(req.params.id, { photo: file.name });
+    res.status(200).json({ success: true, data: file.name });
   });
 });

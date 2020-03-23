@@ -4,6 +4,10 @@ const express = require("express");
 const dotenv = require("dotenv");
 //requiring middleware from our dependencies
 const morgan = require("morgan");
+//requiring fileupload for express
+const fileUpload = require("express-fileupload");
+//requiring path module
+const path = require("path");
 //requiring our DB conenctive function
 const connectDB = require("./config/db");
 //requiring our errorHandler function to pass through our middleware
@@ -29,6 +33,12 @@ app.use(express.json());
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
+
+//File upload Middleware
+app.use(fileUpload());
+
+//Set static folder
+app.use(express.static(path.join(__dirname, "public")));
 
 /*
 Mount routes to our app
