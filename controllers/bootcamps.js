@@ -33,7 +33,7 @@ exports.getBootcamps = asyncHandler(async (req, res, next) => {
     match => `$${match}`
   );
   //finding resource
-  query = Bootcamp.find(JSON.parse(queryString));
+  query = Bootcamp.find(JSON.parse(queryString)).populate(`courses`); //populate the virtual courses JSON OBJECT from the schema to populate in the course model
 
   //Select Fields
   if (req.query.select) {
@@ -114,10 +114,12 @@ exports.createBootcamp = asyncHandler(async (req, res, next) => {
 //@desc   Delete a Bootcamp
 //@access Private
 exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
-  const deletedBootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
+  const deletedBootcamp = await Bootcamp.findById(req.params.id);
   if (!deletedBootcamp) {
     return next(error);
   }
+  //calling the middleware to remove courses from the bootcamp where it matches its respective ID - SEE BOOTCAMP SCHEMA CASCADING
+  deletedBootcamp.remove();
   return res.status(200).json({ success: true, data: {} });
 });
 
