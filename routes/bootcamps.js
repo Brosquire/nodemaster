@@ -8,7 +8,8 @@ const {
   getBootcamps,
   updateBootcamp,
   deleteBootcamp,
-  createBootcamp
+  createBootcamp,
+  radiusBootcamp
 } = require("../controllers/bootcamps");
 
 /*
@@ -16,6 +17,8 @@ setting our router to use the imported routes
 setting the chained methods and routes to its respective API call(get, put, post, delete)
 and passing the route as an argument for its respective API call
 */
+router.route("/radius/:zipcode/:distance").get(radiusBootcamp);
+
 router
   .route("/")
   .get(getBootcamps)

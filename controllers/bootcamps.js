@@ -4,12 +4,56 @@
 const Bootcamp = require("../models/Bootcamp");
 //requiring our asyncHandler
 const asyncHandler = require("../middleware/async");
+//Requiring Geocode
+const geoCoder = require("../utils/geocoder");
+const ErrorResponse = require("../utils/errorResponse");
 
 //@route  GET /api/v1/bootcamps
 //@desc   GET All bootcamps
 //@access Public
 exports.getBootcamps = asyncHandler(async (req, res, next) => {
-  const bootcamps = await Bootcamp.find();
+  let query;
+
+  //Copy req.query
+  const reqQuery = { ...req.query };
+
+  //Fields to exclude
+  const removeFields = ["select", "sort"];
+
+  //Loop over the removeFields array and delete respected fields from req.query
+  removeFields.forEach(param => delete reqQuery[param]);
+
+  //setting our query string to the reqQuery method and stringifying it
+  let queryString = JSON.stringify(reqQuery);
+
+  //regex to replace the mongoose methods(greater tha, greater than equal to,
+  // less than, less than equal to and in) to be replaced with a $ in front
+  queryString = queryString.replace(
+    /\b(gt|gte|lt|lte|in)\b/g,
+    match => `$${match}`
+  );
+  //finding resource
+  query = Bootcamp.find(JSON.parse(queryString));
+
+  //Select Fields
+  if (req.query.select) {
+    //splitting the query fields by a comma and joining them with a space
+    //and setting that to our query field to be displayed in the console
+    const fields = req.query.select.split(",").join(" ");
+    query = query.select(fields);
+  }
+
+  //Sort
+  if (req.query.sort) {
+    const sortBy = req.query.sort.split(",").join(" ");
+    query = query.sort(sortBy);
+  } else {
+    query = query.sort(`-createdAt`);
+  }
+
+  //executing our query
+  const bootcamps = await query;
+
   return res
     .status(200)
     .json({ success: true, count: bootcamps.length, data: bootcamps });
@@ -67,4 +111,36 @@ exports.updateBootcamp = asyncHandler(async (req, res, next) => {
     return next(error);
   }
   return res.status(200).json({ success: true, data: updatedBootcamp });
+});
+
+//@route  GET /api/v1/bootcamps/radius/:zipcode/:distance
+//@desc   Bootcamps within a radius
+//@access Private
+exports.radiusBootcamp = asyncHandler(async (req, res, next) => {
+  const { zipcode, distance } = req.params;
+
+  //Get Latitude/Longitude from the GeoCoder
+  const loc = await geoCoder.geocode(zipcode);
+  const lat = loc[0].latitude;
+  const lng = loc[0].longitude;
+
+  //Calculating the raidus using radians = distance/radius of earth ::: earth radius=3963mi
+  const radius = distance / 3963;
+
+  const bootcampLocation = await Bootcamp.find({
+    location: { $geoWithin: { $centerSphere: [[lng, lat], radius] } }
+  });
+
+  //if no bootcamps returned new ErrorResponse message sent back
+  if (bootcampLocation.length === 0) {
+    const message =
+      "No Bootcamps within your search radius. Please expand the search criteria";
+    return next(new ErrorResponse(message, 400));
+  }
+
+  return res.status(200).json({
+    success: true,
+    count: bootcampLocation.length,
+    data: bootcampLocation
+  });
 });
