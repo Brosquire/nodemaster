@@ -33,6 +33,19 @@ exports.getBootcamp = asyncHandler(async (req, res, next) => {
 //@desc   Create a new Bootcamp
 //@access Private
 exports.createBootcamp = asyncHandler(async (req, res, next) => {
+  //Add user to Bootcamp Schema from req.body
+  req.body.user = req.user.id;
+  //Check for published bootcamp so only one can be created and not duplicated
+  const publishedBootcamp = await Bootcamp.findOne({ user: req.user.id });
+  //If user is not admin only one bootcamp be added
+  if (publishedBootcamp && req.user.role !== "admin") {
+    return next(
+      new ErrorResponse(
+        `The user with id: ${req.user.id} has already published a bootcamp`,
+        400
+      )
+    );
+  }
   //creating a new Bootcamp and passing the request.body as the data to save to the DB
   const bootcamp = await Bootcamp.create(req.body);
   //sending back a successful resource to the console and the data in JSON format to be accessed by the front-end
@@ -47,6 +60,18 @@ exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
   if (!deletedBootcamp) {
     return next(error);
   }
+  //Check if Bootcamp owner is true
+  if (
+    deletedBootcamp.user.toString() !== req.user.id &&
+    req.user.role !== "admin"
+  ) {
+    return next(
+      new ErrorResponse(
+        `User ${req.params.id} is not authorized to delete this Bootcamp`,
+        401
+      )
+    );
+  }
   //calling the middleware to remove courses from the bootcamp where it matches its respective ID - SEE BOOTCAMP SCHEMA CASCADING
   deletedBootcamp.remove();
   return res.status(200).json({ success: true, data: {} });
@@ -57,19 +82,27 @@ exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
 //@access Private
 exports.updateBootcamp = asyncHandler(async (req, res, next) => {
   //passing the arguments [id, newdata] = [id to find by, newdata entered] through the req.params/id and req.body, sequentially
-  const updatedBootcamp = await Bootcamp.findByIdAndUpdate(
-    req.params.id,
-    req.body,
-    //passing in validators through our mongoose middleware
-    {
-      new: true,
-      runValidators: true
-    }
-  );
+  let updatedBootcamp = await Bootcamp.findById(req.params.id);
   //check if return data is true
   if (!updatedBootcamp) {
     return next(error);
   }
+  //Ensure user is the bootcamp creator to edit
+  if (
+    updatedBootcamp.user.toString() !== req.user.id &&
+    req.user.role !== "admin"
+  ) {
+    return next(
+      new ErrorResponse(
+        `User ${req.user.id} is not authorized to update this Bootcamp`,
+        401
+      )
+    );
+  }
+  updatedBootcamp = await Bootcamp.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true
+  });
   return res.status(200).json({ success: true, data: updatedBootcamp });
 });
 
@@ -105,13 +138,26 @@ exports.radiusBootcamp = asyncHandler(async (req, res, next) => {
   });
 });
 
-//@route  DELETE /api/v1/bootcamps/:id/photo
+//@route  PUT /api/v1/bootcamps/:id/photo
 //@desc   Upload photo for bootcamp
 //@access Private
 exports.bootcampPhotoUpload = asyncHandler(async (req, res, next) => {
   const bootcampPhoto = await Bootcamp.findById(req.params.id);
   if (!bootcampPhoto) {
     return next(error);
+  }
+
+  //Check if Bootcamp owner is true
+  if (
+    bootcampPhoto.user.toString() !== req.user.id &&
+    req.user.role !== "admin"
+  ) {
+    return next(
+      new ErrorResponse(
+        `User ${req.params.id} is not authorized to update this Bootcamp`,
+        401
+      )
+    );
   }
 
   if (!req.files) {
