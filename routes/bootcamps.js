@@ -19,6 +19,9 @@ const {
 //Include other resource routers
 const courseRouter = require("./courses");
 
+// Bringing in the Protected Routes from our middleware
+const { protect, authorize } = require("../middleware/auth");
+
 /* 
   ReRoute into other resource routers = router.use()method 
   and pass the URL query parameters into the first argument 
@@ -33,17 +36,19 @@ router.use(`/:bootcampId/courses`, courseRouter);
 */
 router.route("/radius/:zipcode/:distance").get(radiusBootcamp);
 
-router.route("/:id/photo").put(bootcampPhotoUpload);
+router
+  .route("/:id/photo")
+  .put(protect, authorize("publisher", "admin"), bootcampPhotoUpload);
 
 router
   .route("/")
   .get(advancedResults(Bootcamp, "courses"), getBootcamps)
-  .post(createBootcamp);
+  .post(protect, authorize("publisher", "admin"), createBootcamp);
 
 router
   .route("/:id")
   .get(getBootcamp)
-  .put(updateBootcamp)
-  .delete(deleteBootcamp);
+  .put(protect, authorize("publisher", "admin"), updateBootcamp)
+  .delete(protect, authorize("publisher", "admin"), deleteBootcamp);
 
 module.exports = router;

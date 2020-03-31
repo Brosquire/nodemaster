@@ -10,9 +10,12 @@
   "author": "ZHF",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-fileupload": "^1.1.6",
+    "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.9.5",
     "morgan": "^1.10.0",
     "node-geocoder": "^3.25.1",

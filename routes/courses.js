@@ -5,6 +5,8 @@ const router = express.Router({ mergeParams: true }); //passing mergeParams: tru
 const Courses = require("../models/Course");
 //bringing in the advanced results middleware
 const advancedResults = require("../middleware/advancedResults");
+// Bringing in the Protected Routes from our middleware
+const { protect, authorize } = require("../middleware/auth");
 
 const {
   getCourses,
@@ -20,12 +22,12 @@ router
     advancedResults(Courses, { path: "bootcamp", select: "name description" }),
     getCourses
   )
-  .post(addCourse);
+  .post(protect, authorize("publisher", "admin"), addCourse);
 
 router
   .route("/:id")
   .get(getCourse)
-  .put(updateCourse)
-  .delete(deletCourse);
+  .put(protect, authorize("publisher", "admin"), updateCourse)
+  .delete(protect, authorize("publisher", "admin"), deletCourse);
 
 module.exports = router;
