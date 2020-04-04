@@ -25,6 +25,7 @@ connectDB();
 const bootcamps = require("./routes/bootcamps");
 const courses = require("./routes/courses");
 const auth = require("./routes/auth");
+const users = require("./routes/users");
 
 //initializing our app to use express
 const app = express();
@@ -54,6 +55,7 @@ AFTER the route has been mounted to the app()
 app.use("/api/v1/bootcamps", bootcamps);
 app.use("/api/v1/courses", courses);
 app.use("/api/v1/auth", auth);
+app.use("/api/v1/users", users);
 app.use(errorHandler);
 
 //setting our port variable from our environment file in the config folder

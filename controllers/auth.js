@@ -66,6 +66,43 @@ exports.getMe = asyncHandler(async (req, res, next) => {
   });
 });
 
+//@route    PUT /api/vi/auth/updatedetails
+//@desc     Update users details
+//@access   Private
+exports.updateDetails = asyncHandler(async (req, res, next) => {
+  const fieldsToUpdate = {
+    name: req.body.name,
+    email: req.body.email
+  };
+
+  const user = await User.findByIdAndUpdate(req.user.id, fieldsToUpdate, {
+    new: true,
+    runValidators: true
+  });
+
+  res.status(200).json({
+    success: true,
+    data: user
+  });
+});
+
+//@route    PUT /api/vi/auth/updatepassword
+//@desc     Update Password
+//@access   Private
+exports.updatePassword = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.user.id).select("+password");
+
+  //Check current password returns true
+  if (!(await user.matchPassword(req.body.currentPassword))) {
+    return next(new ErrorResponse("Password is Incorrect", 401));
+  }
+
+  user.password = req.body.newPassword;
+  await user.save();
+
+  sendTokenResponse(user, 200, res);
+});
+
 //@route    POST /api/vi/auth/forgotpassword
 //@desc     Forgot Password
 //@access   Public
