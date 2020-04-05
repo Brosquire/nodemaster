@@ -5,6 +5,8 @@ const router = express.Router();
 const Bootcamp = require("../models/Bootcamp");
 //Bringing in Advanced Results Middleware
 const advancedResults = require("../middleware/advancedResults");
+// Bringing in the Protected Routes from our middleware
+const { protect, authorize } = require("../middleware/auth");
 //importing our routes from our route controllers
 const {
   getBootcamp,
@@ -18,16 +20,14 @@ const {
 
 //Include other resource routers
 const courseRouter = require("./courses");
-
-// Bringing in the Protected Routes from our middleware
-const { protect, authorize } = require("../middleware/auth");
-
+const reviewRouter = require("./reviews");
 /* 
   ReRoute into other resource routers = router.use()method 
   and pass the URL query parameters into the first argument 
   and the second argument is where to connect that route to ie: courses
 */
 router.use(`/:bootcampId/courses`, courseRouter);
+router.use(`/:bootcampId/reviews`, reviewRouter);
 
 /*
   setting our router to use the imported routes
